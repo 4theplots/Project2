@@ -6,8 +6,6 @@ f = open("N1Filter.txt", "r")
 
 L = p.parsefile(f)
 
-print(str(len(L)))
-
 def calculate(parsedPackets, nodeIP):
     reqSent = 0
     reqRec = 0
