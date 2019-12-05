@@ -1,11 +1,3 @@
-import parse as p
-
-f = open("N1Filter.txt", "r")
-
-
-
-L = p.parsefile(f)
-
 def calculate(parsedPackets, nodeIP):
     reqSent = 0
     reqRec = 0
@@ -23,10 +15,14 @@ def calculate(parsedPackets, nodeIP):
 
     throughPut = 0
     goodPut = 0
+    replyDelay = 0.0
 
 
 
     seqDict = dict()
+    delayDict = dict()
+
+    calcs = []
 
     for packet in parsedPackets:
 
@@ -56,6 +52,10 @@ def calculate(parsedPackets, nodeIP):
 
             ## received by node
             else:
+                if seqNum in delayDict:
+                    delayDict[seqNum][0] = float(packet['Time'])
+                else:
+                    delayDict[seqNum] = [float(packet['Time']), 0]
                 reqRec += 1
                 reqBytesRec += packet['TotalLen'] + 14
                 reqDataRec += packet['TotalLen'] - 28
@@ -68,10 +68,14 @@ def calculate(parsedPackets, nodeIP):
             ## sent by node
             if packet['SrcIP'] == nodeIP:
                 repSent += 1
+                if seqNum in delayDict:
+                    delayDict[seqNum][1] = float(packet['Time'])
+                else:
+                    delayDict[seqNum] = [0, float(packet['Time'])]
             ## received by node
             else:
             ## increment running total of Req Hop Count
-                reqHopCount += 129 - packet['TTL']
+                reqHopCount += (129 - packet['TTL'])
                 #print(packet['SrcMac'])
                 repRec += 1
 
@@ -83,7 +87,8 @@ def calculate(parsedPackets, nodeIP):
 
     # end for loop
 
-    reqHopCount = round(reqHopCount / repRec, 2)
+    avgHopCount = round(float(reqHopCount) / float(repRec), 2)
+
 
 
     for p in seqDict:
@@ -91,7 +96,13 @@ def calculate(parsedPackets, nodeIP):
         ## sum time difference from request to reply
         RTT += (d[1] - d[0])
 
-    
+    for p in delayDict:
+        d = delayDict.get(p)
+        replyDelay += (d[1] - d[0])
+
+
+
+    replyDelay = round((replyDelay / repSent) * 1000000,2)
     throughPut = reqBytesSent
 
     throughPut = round( (reqBytesSent / 1000) / RTT, 1)
@@ -101,26 +112,24 @@ def calculate(parsedPackets, nodeIP):
     ## Calculate average RTT and convert to MS
     RTT = round( (RTT / reqSent) * 1000, 2)
 
+    calcs.append(str(reqSent))
+    calcs.append(str(reqRec))
+    calcs.append(str(repSent))
+    calcs.append(str(repRec))
 
-
-    print("Echo Request Sent: " + str(reqSent))
-    print("Echo Requests Received: " +  str(reqRec))
-    print("Echo Replies Sent: "  + str(repSent))
-    print("Echo Replies Received: " + str(repRec))
-
-    print("Echo Request Bytes Sent: " + str(reqBytesSent))
-    print("Echo Request Bytes Received: " + str(reqBytesRec))
-
-    print("Echo Request Data Sent: " + str(reqDataSent))
-    print("Echo Request Data Received: " + str(reqDataRec))
-
-    print()
-
-    print("Average RTT (ms): " + str(RTT))
-    print("Echo Request Throughput (kB/sec): " + str(throughPut))
-    print("Echo Request Goodput (kB/sec): " + str(goodPut))
-
-    print()
-    print("Average Echo Request Hop Count: " + str(reqHopCount))
+    calcs.append(str(reqBytesSent))
+    calcs.append(str(reqDataSent))
     
-calculate(L, "192.168.100.1")
+
+    calcs.append(str(reqBytesRec))
+    calcs.append(str(reqDataRec))
+
+
+    calcs.append(str(RTT))
+    calcs.append(str(throughPut))
+    calcs.append(str(goodPut))
+    calcs.append(str(replyDelay))
+
+    calcs.append(str(avgHopCount))
+
+    return calcs

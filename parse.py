@@ -1,5 +1,3 @@
-f = open("N1Filter.txt", "r")
-
 def parsefile(f):
     packets = []
     x = f.readline().strip()
@@ -86,5 +84,3 @@ def parsefile(f):
 
     
     return packets
-
-#print(parsefile(f)[0])
