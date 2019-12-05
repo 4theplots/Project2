@@ -11,47 +11,30 @@ def parsefile(f):
         f.readline()
         x = f.readline().strip()
         line = ' '.join(x.split()).split(' ')
-        #print(line)
+
 
         packetNum = line[0]
         packetTime = line[1]
 
-        #print("Packet #: " + packetNum)
-        #print("Packet Time: " + packetTime)
 
         x = f.readline().strip()
         line = ' '.join(x[6:].split()).split(' ')
-        #print (line)
 
         destMac = line[0] + ":" + line[1] + ":" + line[2] + ":" + line[3] + ":" + line[4] + ":" + line[5]
         srcMac = line[6] + ":" + line[7] + ":" + line[8] + ":" + line[9] + ":" + line[10] + ":" + line[11]
 
-        #destMac = int(destMac, 16)
-        #srcMac = int(srcMac, 16)
-
-        #print('Dest Mac: ' + str(destMac))
-        #print('Src Mac: ' + str(srcMac))
-
-        protocolType = line[12] + line[13]
-
-        #print('Type: ' + protocolType)
-
         headerLength = int(line[14][1]) * 4
 
-        #print('Header Length: ' + str(headerLength))
 
     ## Hex line 2
         x = f.readline().strip()
         line = ' '.join(x[6:53].split()).split(' ')
-        #print (line)
 
+        # Set Packet Length value and convert from hex to decimal
         totalLength = int(line[0] + line[1], 16)
 
-        #print("Total Length: " + str(totalLength))
-
+        # Set Time to Live value and convert from hex to decimal
         timeToLive = int(line[6], 16)
-
-        #print("Time to Live: " + str(timeToLive))
 
         sourceIP = ''
 
@@ -68,22 +51,17 @@ def parsefile(f):
         ## HEX LINE 3
         x = f.readline().strip()
         line = ' '.join(x[6:53].split()).split(' ')
-        #print (line)
 
+        # concatenate destination IP hex fields
+        # and convert the hex value to string
         destinationIP += str(int(line[0], 16)) + '.' + str(int(line[1],16))
-
-
-        #print("Source IP: " + str(sourceIP))
-        #print("Destination IP: " + str(destinationIP))
 
         icmpType = int(line[2],16)
 
-        #print("ICMP Type: " + str(icmpType))
-
         seqNum = int(line[8] + line[9], 16)
 
-        #print("Seq. #: " + str(seqNum))
-
+        
+        # set packet values and add to list of packets
         packet['Num'] = packetNum
         packet['Time'] = packetTime
         packet['DestMac'] = destMac
@@ -99,6 +77,7 @@ def parsefile(f):
 
         packets.append(packet)
 
+        # move file reader to next packet or EOF
         x = f.readline().strip()
         while x != "@":
             if x == "":
@@ -108,4 +87,4 @@ def parsefile(f):
     
     return packets
 
-print(parsefile(f)[0])
+#print(parsefile(f)[0])
